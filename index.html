@@ -82,6 +82,65 @@ footer .nav-list li{ margin:.15rem 0; }
   .cta.icon-only{ padding:.45rem .6rem; }
   .cta.icon-only img{ height:20px; }
 }
+
+/* Typewriter header */
+.typewriter{
+  position:relative;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.typewriter::after{
+  content:"";
+  position:absolute;
+  inset-inline-end:0; /* RTL/LTR aware caret */
+  height:1em;
+  border-inline-end:2px solid currentColor;
+  transform:translateY(0.2em);
+  animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink { 50% { opacity:0 } }
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .typewriter::after{ animation:none }
+}
+
+/* Typewriter can wrap so it won't overflow */
+.typewriter{
+  position: relative;
+  white-space: normal;        /* was: nowrap */
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Caret */
+.typewriter::after{
+  content:"";
+  position:absolute;
+  inset-inline-end:0;
+  height:1em;
+  border-inline-end:2px solid currentColor;
+  transform:translateY(0.2em);
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink { 50% { opacity:0 } }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .typewriter::after{ animation:none }
+}
+
+/* Responsive heading size (adjust max to taste) */
+.hero h1, h1.typewriter{
+  font-size: clamp(28px, 5vw, 52px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+/* If the heading wrapped to multiple lines, hide the edge caret */
+.typewriter.multiline::after{ display:none; }
+
 </style>
 </head>
 <body>
@@ -298,6 +357,45 @@ footer .nav-list li{ margin:.15rem 0; }
       const browser = (navigator.language||'').toLowerCase().startsWith('he') ? 'he' : 'en';
       return (supported.includes(urlLang) && urlLang) || (supported.includes(stored) && stored) || browser || 'he';
     }
+	
+
+  // Typewriter: types text into an element, RTL/LTR-safe, resizable speed
+   function typeText(el, fullText, {speed=32, delay=250}={}){
+    if(!el) return;
+
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(prefersReduced){
+      el.textContent = fullText;
+      el.classList.remove('typewriter');
+      return;
+    }
+
+    el.classList.add('typewriter');
+    el.textContent = "";
+    let i = 0;
+
+    // Mark element as multiline if it wrapped
+    function updateWrapFlag(){
+      const wrapped = el.scrollWidth > el.clientWidth;
+      el.classList.toggle('multiline', wrapped);
+    }
+
+    setTimeout(()=>{
+      const t = setInterval(()=>{
+        el.textContent += fullText[i++];
+        updateWrapFlag();                 // check during typing
+        if(i >= fullText.length){
+          clearInterval(t);
+          updateWrapFlag();               // final check
+        }
+      }, speed);
+    }, delay);
+
+    // Re-check on resize (responsive font may change wrapping)
+    window.addEventListener('resize', updateWrapFlag, { passive:true });
+  }
+
+	
     async function loadLang(lang){
       const res = await fetch(`i18n/${lang}.json`);
       const dict = await res.json();
@@ -311,6 +409,13 @@ footer .nav-list li{ margin:.15rem 0; }
         const key = el.getAttribute('data-i18n-alt');
         if(dict[key] !== undefined){ el.alt = dict[key]; }
       });
+	  // After swapping text, re-type the hero title
+		const heroH1 = document.querySelector('h1[data-i18n="hero.title"]');
+		if(heroH1){
+		  const full = heroH1.textContent.trim();
+		  typeText(heroH1, full, { speed: 60, delay: 360 });
+		}
+
       // meta
       document.getElementById('metaDescription').setAttribute('content', dict['meta.description']||'');
       document.getElementById('ogTitle').setAttribute('content', dict['meta.title']||'');
