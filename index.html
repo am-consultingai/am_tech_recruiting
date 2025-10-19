@@ -141,6 +141,31 @@ footer .nav-list li{ margin:.15rem 0; }
 /* If the heading wrapped to multiple lines, hide the edge caret */
 .typewriter.multiline::after{ display:none; }
 
+
+/* Mobile-first fixes for the hero heading */
+@media (max-width: 480px){
+  .hero h1,
+  h1.typewriter{
+    font-size: clamp(22px, 6.2vw, 32px) !important; /* smaller on phones */
+    line-height: 1.12;
+    margin-block: 0.35em 0.5em;                     /* less vertical space */
+    max-width: 22ch;                                /* cap line length so it doesn't span the whole screen */
+    text-wrap: balance;
+  }
+
+  /* tighten hero section padding so it doesn't take half the screen */
+  .hero{
+    padding-block: 18px 22px;                       /* tweak to taste */
+  }
+}
+
+/* Direction-aware alignment (so English is left-aligned, Hebrew is right-aligned) */
+:root[dir="ltr"] .hero h1{ text-align: left; }
+:root[dir="rtl"] .hero h1{ text-align: right; }
+
+/* If the typewriter caret looks odd on wrapped headings */
+.typewriter.multiline::after{ display:none; }
+
 </style>
 </head>
 <body>
@@ -413,7 +438,7 @@ footer .nav-list li{ margin:.15rem 0; }
 		const heroH1 = document.querySelector('h1[data-i18n="hero.title"]');
 		if(heroH1){
 		  const full = heroH1.textContent.trim();
-		  typeText(heroH1, full, { speed: 40, delay: 240 });
+		  typeText(heroH1, full, { speed: 60, delay: 360 });
 		}
 
       // meta
